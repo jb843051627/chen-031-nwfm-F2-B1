@@ -40,10 +40,9 @@ public class TNwfmSettleRowServiceImpl extends ServiceImpl<TNwfmSettleRowMapper,
 
     @Override
     public List<TNwfmSettleRow> selectTNwfmSettleRowList(Wrapper<TNwfmSettleRow> queryWrapper) {
-        QueryWrapper<TNwfmSettleRow> wrapper = new QueryWrapper<TNwfmSettleRow>();
-        com.github.pagehelper.PageHelper.startPage(1, 10);
-        wrapper.eq("status", 0);
-        return this.baseMapper.selectList(wrapper);
+        // 条件与分页都以调用方为准：台账上把状态改成"已清算"后，回清单也得看得见，
+        // 不能在服务层写死 status=0、写死只取前 10 行
+        return this.baseMapper.selectList(queryWrapper);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class TNwfmSettleRowServiceImpl extends ServiceImpl<TNwfmSettleRowMapper,
             return 0;
         }
 
-        record.setCreateBy(record.getItemNo());
+        // createBy 由填充器按登录人写入，不能拿条目编号顶替
         TNwfmSettleBase refArch = nwfmSettleBaseMapper.selectOne(new QueryWrapper<TNwfmSettleBase>()
                 .eq("id", record.getBaseId()).eq("del_flag", 0));
         if (refArch == null) {

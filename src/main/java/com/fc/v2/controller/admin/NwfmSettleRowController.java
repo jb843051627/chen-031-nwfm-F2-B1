@@ -7,6 +7,7 @@ import com.fc.v2.common.domain.ResultTable;
 import com.fc.v2.common.log.Log;
 import com.fc.v2.model.auto.TNwfmSettleRow;
 import com.fc.v2.service.ITNwfmSettleRowService;
+import com.fc.v2.util.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -45,6 +46,11 @@ public class NwfmSettleRowController extends BaseController {
     @ResponseBody
     public ResultTable list(TNwfmSettleRow record) {
         QueryWrapper<TNwfmSettleRow> queryWrapper = new QueryWrapper<TNwfmSettleRow>();
+        queryWrapper.eq(StringUtils.isNotEmpty(record.getItemNo()), "item_no", record.getItemNo());
+        queryWrapper.like(StringUtils.isNotEmpty(record.getStallName()), "stall_name", record.getStallName());
+        queryWrapper.eq(record.getStatus() != null, "status", record.getStatus());
+        queryWrapper.eq("del_flag", 0);
+        queryWrapper.orderByDesc("create_time");
         startPage();
         com.github.pagehelper.PageInfo<TNwfmSettleRow> page =
                 new com.github.pagehelper.PageInfo<TNwfmSettleRow>(nwfmSettleRowService.selectTNwfmSettleRowList(queryWrapper));
