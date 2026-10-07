@@ -45,6 +45,12 @@ public class NwfmSettleRowController extends BaseController {
     @ResponseBody
     public ResultTable list(TNwfmSettleRow record) {
         QueryWrapper<TNwfmSettleRow> queryWrapper = new QueryWrapper<TNwfmSettleRow>();
+        queryWrapper.like(com.fc.v2.util.StringUtils.isNotEmpty(record.getItemNo()),
+                "item_no", record.getItemNo());
+        queryWrapper.like(com.fc.v2.util.StringUtils.isNotEmpty(record.getStallName()),
+                "stall_name", record.getStallName());
+        queryWrapper.eq(com.fc.v2.util.StringUtils.isNotNull(record.getStatus()),
+                "status", record.getStatus());
         startPage();
         com.github.pagehelper.PageInfo<TNwfmSettleRow> page =
                 new com.github.pagehelper.PageInfo<TNwfmSettleRow>(nwfmSettleRowService.selectTNwfmSettleRowList(queryWrapper));

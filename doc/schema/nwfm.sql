@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS t_nwfm_dispute_rule (
 CREATE TABLE IF NOT EXISTS t_nwfm_job (
   id bigint NOT NULL COMMENT '主键',
   job_no varchar(32) DEFAULT NULL COMMENT '作业编号',
+  req_no varchar(64) DEFAULT NULL COMMENT '交件请求号',
   job_name varchar(64) DEFAULT NULL COMMENT '作业名称',
   status int DEFAULT NULL COMMENT '作业状态(0草稿1待审2生效中3已生效4部分生效5回滚中6已回滚)',
   total_rows int DEFAULT NULL COMMENT '提交总行数',

@@ -41,10 +41,20 @@ public class TNwfmDisputeRuleServiceImpl implements ITNwfmDisputeRuleService {
         if (r == null) {
             return null;
         }
+        // 已办结为终态，不得再推进
+        if (r.getStatus() != null && r.getStatus().intValue() == STATUS_TERMINAL) {
+            return null;
+        }
         int st = r.getStage() == null ? 0 : r.getStage();
-        r.setStage(Math.min(st + 2, MAX_STAGE));
-        r.setStatus(STATUS_ACTIVE);
-        r.setLastAction(remark);
+        if (st >= MAX_STAGE) {
+            // 已到最后环节，再推进即办结，不得跨档
+            r.setStage(Integer.valueOf(MAX_STAGE));
+            r.setStatus(Integer.valueOf(STATUS_TERMINAL));
+        } else {
+            r.setStage(Integer.valueOf(st + 1));
+            r.setStatus(Integer.valueOf(STATUS_ACTIVE));
+        }
+        r.setLastAction(truncate(remark));
         this.nwfmDisputeRuleMapper.updateById(r);
         return r;
     }
@@ -55,9 +65,18 @@ public class TNwfmDisputeRuleServiceImpl implements ITNwfmDisputeRuleService {
         if (r == null) {
             return null;
         }
-        r.setStage(0);
-        r.setStatus(STATUS_ACTIVE);
-        r.setLastAction(remark);
+        // 已办结为终态，不得回退
+        if (r.getStatus() != null && r.getStatus().intValue() == STATUS_TERMINAL) {
+            return null;
+        }
+        // 只回退一档，不直接打回起点；已在首环节则拒退
+        int st = r.getStage() == null ? 0 : r.getStage();
+        if (st <= 0) {
+            return null;
+        }
+        r.setStage(Integer.valueOf(st - 1));
+        r.setStatus(Integer.valueOf(STATUS_ACTIVE));
+        r.setLastAction(truncate(remark));
         this.nwfmDisputeRuleMapper.updateById(r);
         return r;
     }
@@ -66,6 +85,10 @@ public class TNwfmDisputeRuleServiceImpl implements ITNwfmDisputeRuleService {
     public boolean updateContent(Long id, String remark) {
         TNwfmDisputeRule r = this.nwfmDisputeRuleMapper.selectById(id);
         if (r == null) {
+            return false;
+        }
+        // 已办结不得再改
+        if (r.getStatus() != null && r.getStatus().intValue() == STATUS_TERMINAL) {
             return false;
         }
         r.setContent(remark);
@@ -78,7 +101,19 @@ public class TNwfmDisputeRuleServiceImpl implements ITNwfmDisputeRuleService {
         if (r == null) {
             return false;
         }
+        // 已办结不得删除
+        if (r.getStatus() != null && r.getStatus().intValue() == STATUS_TERMINAL) {
+            return false;
+        }
         return this.nwfmDisputeRuleMapper.deleteById(id) > 0;
+    }
+
+    /** last_action 列长 32，落库前截断，避免超长动作把整笔更新顶失败 */
+    private static String truncate(String s) {
+        if (s == null) {
+            return null;
+        }
+        return s.length() > 32 ? s.substring(0, 32) : s;
     }
 
 }

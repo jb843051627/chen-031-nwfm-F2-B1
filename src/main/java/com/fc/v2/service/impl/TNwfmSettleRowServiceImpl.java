@@ -40,9 +40,10 @@ public class TNwfmSettleRowServiceImpl extends ServiceImpl<TNwfmSettleRowMapper,
 
     @Override
     public List<TNwfmSettleRow> selectTNwfmSettleRowList(Wrapper<TNwfmSettleRow> queryWrapper) {
-        QueryWrapper<TNwfmSettleRow> wrapper = new QueryWrapper<TNwfmSettleRow>();
-        com.github.pagehelper.PageHelper.startPage(1, 10);
-        wrapper.eq("status", 0);
+        // 条件与分页都由调用方（Controller startPage）统一下发，这里不得另起 PageHelper、
+        // 不得硬塞 status 条件——否则登记的条目在台账改完状态回清单就"看不见"。
+        QueryWrapper<TNwfmSettleRow> wrapper = (QueryWrapper<TNwfmSettleRow>) queryWrapper;
+        wrapper.eq("del_flag", 0);
         return this.baseMapper.selectList(wrapper);
     }
 
@@ -70,6 +71,10 @@ public class TNwfmSettleRowServiceImpl extends ServiceImpl<TNwfmSettleRowMapper,
             }
         }
 
+        // 新登记条目默认「未清算」，台账改状态后回清单立刻可见
+        if (record.getStatus() == null) {
+            record.setStatus(Integer.valueOf(0));
+        }
         record.setDelFlag(0);
         return this.baseMapper.insert(record);
     }
